@@ -1,24 +1,28 @@
 #pragma once
 #include "constants.h"
 #include <stddef.h> // cstddef
+#include <ostream>
 #include "Time.h"
-
-enum class Genre : char
-{
-    Null = 0,
-    Rock = 1,
-    Pop = 2,
-    HipHop = 4,
-    Electronic = 8,
-    Jazz = 16
-};
 
 class Song
 {
-
     char _name[MAX_NAME_SIZE + 1] = {'\0'};
     Time _duration;
-    Genre _genre = Genre::Null;
+    struct Genre
+    {
+        enum EGenre : uint8_t
+        {
+            Null = 0,
+            Rock = 1,
+            Pop = 2,
+            HipHop = 4,
+            Electronic = 8,
+            Jazz = 16,
+        } _genre;
+
+        void print(std::ostream &) const;
+        void setGenre(const char *);
+    } _genre;
 
     struct Content
     {
@@ -27,8 +31,10 @@ class Song
 
         Content() = default;
         bool setContent(const unsigned char *, int size);
+        bool readContentBin(const char *);
         void raiseKthBits(int, bool);
         void xOR(const Content &other);
+        void print(std::ostream &) const;
     } _content;
 
 public:
@@ -38,7 +44,7 @@ public:
     void mix(const Song &other);
 
     const char *getName() const;
-    size_t getDuration() const;
-    Genre getGenre() const;
-    const char *getContent() const;
+    const Time &getDuration() const;
+
+    void print(std::ostream &) const;
 };

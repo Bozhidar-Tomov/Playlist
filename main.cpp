@@ -2,6 +2,19 @@
 
 int main()
 {
-    char a = 0b00000000;
-    std::cout << 0 % 8;
+    enum test
+    {
+        a = 1,
+        b = 2,
+        c = 4,
+
+    };
+    test t = test::a;
+
+    if (t & test::a)
+    {
+        std::cout << "a";
+        return 1;
+    }
+    std::cout << "~a";
 }
