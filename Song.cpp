@@ -29,17 +29,11 @@ const char *Song::getName() const
 bool Song::setName(const char *name)
 {
     int size = myStrLen(name);
-    if (size >= MAX_NAME_SIZE)
+    if (size > MAX_NAME_SIZE)
         return false;
 
     myStrCpy(_name, name);
     return true;
-}
-
-const bool Song::setDuration(int hours, int mins, int secs)
-{
-    _duration = Time(hours, mins, secs);
-    return _duration.isValid();
 }
 
 const Time &Song::getDuration() const
@@ -47,10 +41,11 @@ const Time &Song::getDuration() const
     return _duration;
 }
 
-// Genre Song::getGenre() const
-// {
-//     return _genre;
-// }
+bool Song::setDuration(int hours, int mins, int secs)
+{
+    _duration = Time(hours, mins, secs);
+    return _duration.isValid();
+}
 
 void Song::print(std::ostream &out) const
 {
@@ -88,31 +83,10 @@ bool Song::isValid() const
     return _isValid;
 }
 
-// void Song::Content::raiseKthBits(int k, bool isReverse)
-// {
-//     if (!isReverse)
-//         for (int i = k; i < _bitsCount; i += k)
-//         {
-//             char mask = 1;
-//             mask <<= 7 - (i % 8);
-
-//             char &bucket = _content[(i / 8)];
-//             bucket |= mask;
-//         }
-//     else
-//     {
-//         for (int i = _bitsCount - 1; i >= 0; i -= k)
-//         {
-//             char mask = 1;
-//             mask <<= 7 - (i % 8);
-
-//             char &bucket = _content[(i / 8)];
-//             bucket |= mask;
-//         }
-//     }
-// }
 void Song::Content::raiseKthBits(int k, bool isReverse)
 {
+    int _bitsCount = _size * 8;
+
     int start = isReverse ? _bitsCount - 1 : k;
     int end = isReverse ? 0 : _bitsCount;
     int step = isReverse ? -k : k;
@@ -129,48 +103,26 @@ void Song::Content::raiseKthBits(int k, bool isReverse)
 
 void Song::Content::xOR(const Content &other)
 {
-    // Determine the minimum bits count
-    int minBitsCount = _bitsCount < other._bitsCount ? _bitsCount : other._bitsCount;
+    int minSize = _size < other._size ? _size : other._size;
 
     // XOR full buckets (all meaningful bits)
-    for (int i = 0; i < minBitsCount / 8; ++i)
+    for (int i = 0; i < minSize; ++i)
         _content[i] ^= other._content[i];
 
-    if (minBitsCount % 8 == 0 || minBitsCount == _bitsCount)
-        return;
+    /* As far as the problem describes, the content is of size multiple of 8 (1 char)
 
-    // XOR meaningful bits in the last bucket
+    XOR meaningful bits in the last bucket that are not multiple of 8
+
     int i = minBitsCount / 8;
-    unsigned char mask = (~0) << (8 - (minBitsCount % 8)); // TODO: << OR >> ??? big o little endian
+    unsigned char mask = (~0) << (8 - (minBitsCount % 8));
     _content[i] = (_content[i] ^ other._content[i]) & mask;
+    */
 }
 
 void Song::Content::saveToBin(std::ostream &out) const
 {
-    int i = 0;
-
-    while (i < _bitsCount / 8)
-        out.write((char *)(&_content[i++]), sizeof(char));
+    out.write((const char *)_content, sizeof(unsigned char) * _size);
 }
-
-// bool Song::Content::setContent(const unsigned char *str, int size)
-// {
-//     /*
-//     We cannot use strLen because the content may be in this form:
-
-//     01100111 00000000 01110100
-//     'g'      '\0'     't'
-
-//     strLen will give size 1, while the actual size is 3
-//     */
-
-//     if (!str || size < 0 || size > MAX_CONTENT_SIZE)
-//         return false;
-
-//     myStrCpy(_content, str);
-//     _bitsCount = size;
-//     return true;
-// }
 
 bool Song::Content::readContentBin(const char *fileName)
 {
@@ -179,10 +131,10 @@ bool Song::Content::readContentBin(const char *fileName)
     if (!file.is_open())
         return false;
 
-    file.read((char *)(_content), sizeof(char) * MAX_CONTENT_SIZE);
+    file.read((char *)(_content), sizeof(unsigned char) * MAX_CONTENT_SIZE);
 
     file.clear();
-    _bitsCount = (file.tellg() * 8) - last1BitPos(_content[file.tellg()]);
+    _size = file.tellg() * sizeof(unsigned char); // file.tellg() * 1
 
     file.close();
 
@@ -191,6 +143,12 @@ bool Song::Content::readContentBin(const char *fileName)
 
 void Song::Genre::print(std::ostream &out) const
 {
+    if (EGenre::Null)
+    {
+        out << "Genre not available.";
+        return;
+    }
+
     if (_genre & EGenre::Rock)
         out << "Rock ";
     if (_genre & EGenre::Pop)
@@ -212,24 +170,30 @@ bool Song::Genre::setGenre(const char *str)
         switch (*str)
         {
         case 'r':
+        case 'R':
             _genre = EGenre(_genre | EGenre::Rock);
             break;
         case 'p':
+        case 'P':
             _genre = EGenre(_genre | EGenre::Pop);
             break;
         case 'h':
+        case 'H':
             _genre = EGenre(_genre | EGenre::HipHop);
             break;
         case 'e':
+        case 'E':
             _genre = EGenre(_genre | EGenre::Electronic);
             break;
         case 'j':
+        case 'J':
             _genre = EGenre(_genre | EGenre::Jazz);
             break;
         default:
+            _genre = EGenre::Null;
             return false;
         }
-        str++;
+        ++str;
     }
 
     return true;
@@ -242,29 +206,34 @@ bool Song::Genre::isGenre(const char *genre) const
         switch (*genre)
         {
         case 'r':
+        case 'R':
             if (!(_genre & EGenre::Rock))
                 return false;
             break;
         case 'p':
+        case 'P':
             if (!(_genre & EGenre::Pop))
                 return false;
             break;
         case 'h':
+        case 'H':
             if (!(_genre & EGenre::HipHop))
                 return false;
             break;
         case 'e':
+        case 'E':
             if (!(_genre & EGenre::Electronic))
                 return false;
             break;
         case 'j':
+        case 'J':
             if (!(_genre & EGenre::Jazz))
                 return false;
             break;
         default:
             return false;
         }
-        genre++;
+        ++genre;
     }
     return true;
 }
