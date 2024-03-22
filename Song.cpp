@@ -3,6 +3,14 @@
 #include <fstream>
 #include <iostream>
 
+Song::Song(const char *name, int hours, int mins, int secs, const char *genre, const char *fileName)
+{
+    if (setName(name) && setDuration(hours, mins, secs) && setGenre(genre) && setContent(fileName))
+        _isValid = true;
+    else
+        _isValid = false;
+}
+
 void Song::raiseKthBits(int k, bool isReverse)
 {
     _content.raiseKthBits(k, isReverse);
@@ -16,6 +24,22 @@ void Song::mix(const Song &other)
 const char *Song::getName() const
 {
     return _name;
+}
+
+bool Song::setName(const char *name)
+{
+    int size = myStrLen(name);
+    if (size >= MAX_NAME_SIZE)
+        return false;
+
+    myStrCpy(_name, name);
+    return true;
+}
+
+const bool Song::setDuration(int hours, int mins, int secs)
+{
+    _duration = Time(hours, mins, secs);
+    return _duration.isValid();
 }
 
 const Time &Song::getDuration() const
@@ -41,7 +65,27 @@ void Song::print(std::ostream &out) const
         out << std::endl;
         return;
     }
-    _content.print(out);
+    _content.saveToBin(out);
+}
+
+bool Song::isGenre(const char *genre) const
+{
+    return _genre.isGenre(genre);
+}
+
+bool Song::setGenre(const char *str)
+{
+    return _genre.setGenre(str);
+}
+
+bool Song::setContent(const char *fileName)
+{
+    return _content.readContentBin(fileName);
+}
+
+bool Song::isValid() const
+{
+    return _isValid;
 }
 
 // void Song::Content::raiseKthBits(int k, bool isReverse)
@@ -101,32 +145,32 @@ void Song::Content::xOR(const Content &other)
     _content[i] = (_content[i] ^ other._content[i]) & mask;
 }
 
-void Song::Content::print(std::ostream &out) const
+void Song::Content::saveToBin(std::ostream &out) const
 {
     int i = 0;
 
-    while (!out.eof() && i < MAX_CONTENT_SIZE)
+    while (i < _bitsCount / 8)
         out.write((char *)(&_content[i++]), sizeof(char));
 }
 
-bool Song::Content::setContent(const unsigned char *str, int size)
-{
-    /*
-    We cannot use strLen because the content may be in this form:
+// bool Song::Content::setContent(const unsigned char *str, int size)
+// {
+//     /*
+//     We cannot use strLen because the content may be in this form:
 
-    01100111 00000000 01110100
-    'g'      '\0'     't'
+//     01100111 00000000 01110100
+//     'g'      '\0'     't'
 
-    strLen will give size 1, while the actual size is 3
-    */
+//     strLen will give size 1, while the actual size is 3
+//     */
 
-    if (!str || size < 0 || size > MAX_CONTENT_SIZE)
-        return false;
+//     if (!str || size < 0 || size > MAX_CONTENT_SIZE)
+//         return false;
 
-    myStrCpy(_content, str);
-    _bitsCount = size;
-    return true;
-}
+//     myStrCpy(_content, str);
+//     _bitsCount = size;
+//     return true;
+// }
 
 bool Song::Content::readContentBin(const char *fileName)
 {
@@ -135,12 +179,10 @@ bool Song::Content::readContentBin(const char *fileName)
     if (!file.is_open())
         return false;
 
-    int i = 0;
+    file.read((char *)(_content), sizeof(char) * MAX_CONTENT_SIZE);
 
-    while (!file.eof() && i < MAX_CONTENT_SIZE)
-        file.read((char *)(&_content[i++]), sizeof(char));
-
-    _bitsCount = i * 8;
+    file.clear();
+    _bitsCount = (file.tellg() * 8) - last1BitPos(_content[file.tellg()]);
 
     file.close();
 
@@ -161,7 +203,7 @@ void Song::Genre::print(std::ostream &out) const
         out << "Jazz ";
 }
 
-void Song::Genre::setGenre(const char *str)
+bool Song::Genre::setGenre(const char *str)
 {
     _genre = EGenre::Null;
 
@@ -185,8 +227,44 @@ void Song::Genre::setGenre(const char *str)
             _genre = EGenre(_genre | EGenre::Jazz);
             break;
         default:
-            return;
+            return false;
         }
         str++;
     }
+
+    return true;
+}
+
+bool Song::Genre::isGenre(const char *genre) const
+{
+    while (*genre != '\0')
+    {
+        switch (*genre)
+        {
+        case 'r':
+            if (!(_genre & EGenre::Rock))
+                return false;
+            break;
+        case 'p':
+            if (!(_genre & EGenre::Pop))
+                return false;
+            break;
+        case 'h':
+            if (!(_genre & EGenre::HipHop))
+                return false;
+            break;
+        case 'e':
+            if (!(_genre & EGenre::Electronic))
+                return false;
+            break;
+        case 'j':
+            if (!(_genre & EGenre::Jazz))
+                return false;
+            break;
+        default:
+            return false;
+        }
+        genre++;
+    }
+    return true;
 }

@@ -9,6 +9,7 @@ class Time
 {
 private:
     unsigned secondsFromMidnight = 0;
+    bool _isValid = true;
 
     bool validateAndSet(unsigned, unsigned, unsigned, unsigned, unsigned);
 
@@ -25,6 +26,8 @@ public:
 
     bool setMins(unsigned);
     bool setSeconds(unsigned);
+
+    bool isValid() const;
 
     void tick();
 

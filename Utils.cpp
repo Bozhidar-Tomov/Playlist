@@ -1,4 +1,5 @@
 #include <ostream>
+#include "Utils.h"
 
 void myStrCpy(char *destination, const char *source)
 {
@@ -62,18 +63,14 @@ void resize(char *&title, const int titleCapacity)
     title = newTitle;
 }
 
-bool myStrCmp(const char *s1, const char *s2)
+int myStrCmp(const char *s1, const char *s2)
 {
-    if (!s1 || !s2)
-    {
-        return false;
-    }
-    while (*s1 && *s1 == *s2)
+    while (*s1 && (*s1 == *s2))
     {
         ++s1;
         ++s2;
     }
-    return *s1 - *s2 == 0;
+    return *(unsigned char *)s1 - *(unsigned char *)s2;
 }
 
 // only positive numbers!

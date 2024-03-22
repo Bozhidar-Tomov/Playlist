@@ -15,9 +15,10 @@ bool Time::validateAndSet(unsigned lowerBound, unsigned upperBound, unsigned new
 
 Time::Time(unsigned hours, unsigned mins, unsigned seconds)
 {
-    setHours(hours);
-    setMins(mins);
-    setSeconds(seconds);
+    if (setHours(hours) && setMins(mins) && setSeconds(seconds))
+        _isValid = true;
+    else
+        _isValid = false;
 }
 
 unsigned Time::getHours() const
@@ -48,6 +49,11 @@ bool Time::setSeconds(unsigned seconds)
     return validateAndSet(0, 59, seconds, getSeconds(), 1);
 }
 
+bool Time::isValid() const
+{
+    return _isValid;
+}
+
 void Time::tick()
 {
     ++secondsFromMidnight %= DAY_SECONDS;
@@ -57,5 +63,5 @@ void Time::serialize(std::ostream &os) const
 {
     os << std::setw(2) << std::setfill('0') << getHours() << ":"
        << std::setw(2) << std::setfill('0') << getMins() << ":"
-       << std::setw(2) << std::setfill('0') << getSeconds() << std::endl;
+       << std::setw(2) << std::setfill('0') << getSeconds();
 }

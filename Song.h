@@ -21,8 +21,11 @@ class Song
         } _genre;
 
         void print(std::ostream &) const;
-        void setGenre(const char *);
+        bool setGenre(const char *);
+        bool isGenre(const char *) const;
     } _genre;
+
+    bool _isValid = true;
 
     struct Content
     {
@@ -30,21 +33,31 @@ class Song
         int _bitsCount = 0;
 
         Content() = default;
-        bool setContent(const unsigned char *, int size);
         bool readContentBin(const char *);
         void raiseKthBits(int, bool);
         void xOR(const Content &other);
-        void print(std::ostream &) const;
+        void saveToBin(std::ostream &) const;
     } _content;
 
 public:
     Song() = default;
+    Song(const char *, int, int, int, const char *, const char *);
 
     void raiseKthBits(int, bool);
     void mix(const Song &other);
 
     const char *getName() const;
+    bool setName(const char *);
+
     const Time &getDuration() const;
+    const bool setDuration(int, int, int);
 
     void print(std::ostream &) const;
+
+    bool isGenre(const char *) const;
+
+    bool setGenre(const char *);
+    bool setContent(const char *);
+
+    bool isValid() const;
 };
