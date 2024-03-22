@@ -11,4 +11,3 @@ void printStr(const char *, std::ostream &);
 void mySetW(const int, const char, std::ostream &);
 void removeExtraSpaces(char *);
 void myStrcat(char *, const char *);
-int last1BitPos(unsigned char);

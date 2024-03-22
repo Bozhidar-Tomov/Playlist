@@ -1,37 +1,31 @@
 #include <iostream>
 #include "Playlist.h"
-#include "Utils.h"
 #include "Song.h"
-
-namespace Predicatess
-{
-    bool byName(const Song &song1, const Song &song2)
-    {
-        return myStrCmp(song1.getName(), song2.getName()) > 0;
-    }
-    bool byNameEq(const Song &song, const char *name)
-    {
-        return myStrCmp(song.getName(), name) == 0;
-    }
-
-    bool isGenreEqual(const Song &song, const char *str)
-    {
-        return song.isGenre(str);
-    }
-}
+#include "Predicates.h"
 
 int main()
 {
     Playlist p;
-    // p.addSong("hello", 0, 3, 15, "prej", "song1.dat");
-    p.addSong("cum", 0, 3, 15, "pr", "song1.dat");
-    p.addSong("fuck", 0, 3, 15, "prej", "song2.dat");
-    p.addSong("cunt", 0, 3, 15, "pj", "song3.dat");
-    p.addSong("slay", 0, 3, 15, "ej", "song1.dat");
-    p.addSong("gay", 0, 3, 15, "j", "song1.dat");
+    p.addSong("song1", 0, 3, 15, "Pr", "song1.dat");
+    p.addSong("song1.1", 0, 7, 15, "r", "song1.dat");
+    p.addSong("song2", 0, 3, 35, "pReJ", "song2.dat");
+    p.addSong("song3", 0, 3, 15, "h", "song3.dat");
 
-    p.mix("cum", "fuck");
-    p.save("cum", "cum.dat");
+    p.raiseKthBits("song3", 3); // 0000 0000 0000 0000 -> 1001 0010 0100 1001
+    p.mix("song1", "song2");    // 0101 0110           -> 0000 0011
+    p.mix("song2", "song1.1");  // 0101 0101 0110 0001 -> 0000 0011 0110 0001
 
-    std::cout << sizeof(unsigned char);
+    p.search(Predicates::nameEq, Actions::printSong, "song1.1");
+
+    std::cout << "============================\n";
+
+    p.sort(Predicates::DurationAsc);
+    p.print();
+
+    std::cout << "============================\n";
+
+    p.sort(Predicates::nameDesc);
+    p.print();
+
+    p.save("song1", "song1.res.dat");
 }

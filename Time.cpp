@@ -59,6 +59,21 @@ void Time::tick()
     ++secondsFromMidnight %= DAY_SECONDS;
 }
 
+bool Time::isLess(const Time &rhs) const
+{
+    return secondsFromMidnight < rhs.secondsFromMidnight;
+}
+
+bool Time::isEq(const Time &rhs) const
+{
+    return secondsFromMidnight == rhs.secondsFromMidnight;
+}
+
+bool Time::isBigger(const Time &rhs) const
+{
+    return !isLess(rhs) && !isEq(rhs);
+}
+
 void Time::serialize(std::ostream &os) const
 {
     os << std::setw(2) << std::setfill('0') << getHours() << ":"

@@ -1,33 +1,42 @@
-#include "Playlist.h"
 #include <iostream>
 #include <fstream>
-#include "Utils.h"
+#include "Playlist.h"
+#include "Predicates.h"
 
-namespace Predicates
-{
-    bool isNameEqual(const Song &song, const char *name)
-    {
-        return myStrCmp(song.getName(), name);
-    }
-
-    bool isGenreEqual(const Song &song, const char *str)
-    {
-        return song.isGenre(str);
-    }
-}
-
-void Playlist::addSong(const char *name, int hours, int mins, int secs, const char *genre, const char *file)
+bool Playlist::addSong(const char *name, int hours, int mins, int secs, const char *genre, const char *file)
 {
     if (_size >= MAX_PLAYLIST_SIZE)
-        std::cout << "Playlist is full" << std::endl;
+        return false;
 
     Song song(name, hours, mins, secs, genre, file);
 
     if (!song.isValid())
-        std::cout << "Cannot add song - invalid params" << std::endl;
+        return false;
 
     _songs[_size++] = song;
-    std::cout << "Operation successful" << std::endl;
+    return true;
+}
+
+bool Playlist::raiseKthBits(const char *songName, int k)
+{
+    Song *song = Playlist::find(Predicates::nameEq, songName);
+    if (!song)
+        return false;
+
+    song->raiseKthBits(k, true);
+    return true;
+}
+
+bool Playlist::mix(const char *songName1, const char *songName2)
+{
+    Song *song1 = Playlist::find(Predicates::nameEq, songName1);
+    const Song *song2 = Playlist::find(Predicates::nameEq, songName2);
+
+    if (!song1 || !song2)
+        return false;
+
+    song1->mix(*song2);
+    return true;
 }
 
 void Playlist::print() const
@@ -39,21 +48,18 @@ void Playlist::print() const
     }
 }
 
-void Playlist::search(bool (*predicate)(const Song &, const char *), const char *str) const
+bool Playlist::search(bool (*predicate)(const Song &, const char *), void (*action)(const Song &), const char *str) const
 {
     bool has_found = false;
+
     for (int i = 0; i < _size; ++i)
         if (predicate(_songs[i], str))
         {
-            _songs[i].print(std::cout);
+            action(_songs[i]);
             has_found = true;
         }
-    if (!has_found)
-    {
-        std::cout << "Song with predicate ";
-        printStr(str, std::cout);
-        std::cout << " not found." << std::endl;
-    }
+
+    return has_found;
 }
 
 void Playlist::sort(bool (*predicate)(const Song &, const Song &))
@@ -74,48 +80,22 @@ void Playlist::sort(bool (*predicate)(const Song &, const Song &))
     }
 }
 
-void Playlist::save(const char *songName, const char *fileName) const
+bool Playlist::save(const char *songName, const char *fileName) const
 {
-    const Song *song = Playlist::find(Predicates::isNameEqual, songName);
+    const Song *song = Playlist::find(Predicates::nameEq, songName);
 
     if (!song)
-        std::cout << "Song not found" << std::endl;
+        return false;
 
     std::ofstream file(fileName, std::ios::out | std::ios::binary);
 
     if (!file.is_open())
-        std::cout << "Cannot open source file" << std::endl;
+        return false;
 
     song->print(file);
-    std::cout << "Operation successful" << std::endl;
-}
+    file.close();
 
-void Playlist::mix(const char *songName1, const char *songName2)
-{
-    Song *song1 = Playlist::find(Predicates::isNameEqual, songName1);
-    const Song *song2 = Playlist::find(Predicates::isNameEqual, songName1);
-
-    if (!song1 || !song2)
-    {
-        std::cout << "Songs not found" << std::endl;
-        return;
-    }
-
-    song1->mix(*song2);
-    std::cout << "Operation successful" << std::endl;
-}
-
-void Playlist::raiseKthBits(const char *songName, int k)
-{
-    Song *song = Playlist::find(Predicates::isNameEqual, songName);
-    if (!song)
-    {
-        std::cout << "Song not found" << std::endl;
-        return;
-    }
-
-    song->raiseKthBits(k, true);
-    std::cout << "Operation successful" << std::endl;
+    return true;
 }
 
 Song *Playlist::find(bool (*predicate)(const Song &, const char *), const char *str)
@@ -125,6 +105,7 @@ Song *Playlist::find(bool (*predicate)(const Song &, const char *), const char *
             return &_songs[i];
     return nullptr;
 }
+
 const Song *Playlist::find(bool (*predicate)(const Song &, const char *), const char *str) const
 {
     for (int i = 0; i < _size; ++i)

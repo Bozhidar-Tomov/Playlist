@@ -1,7 +1,7 @@
-#include "Song.h"
-#include "Utils.h"
 #include <fstream>
 #include <iostream>
+#include "Song.h"
+#include "Utils.h"
 
 Song::Song(const char *name, int hours, int mins, int secs, const char *genre, const char *fileName)
 {

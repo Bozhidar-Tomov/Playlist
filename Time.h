@@ -31,5 +31,9 @@ public:
 
     void tick();
 
+    bool isLess(const Time &) const;
+    bool isEq(const Time &) const;
+    bool isBigger(const Time &) const;
+
     void serialize(std::ostream &) const;
 };

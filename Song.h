@@ -1,8 +1,9 @@
 #pragma once
-#include "constants.h"
-#include <stddef.h> // cstddef
 #include <ostream>
+#include <stddef.h>
+
 #include "Time.h"
+#include "constants.h"
 
 class Song
 {
@@ -23,9 +24,9 @@ class Song
         } _genre;
 
     public:
-        void print(std::ostream &) const; //
-        bool setGenre(const char *);      //
-        bool isGenre(const char *) const; //
+        void print(std::ostream &) const;
+        bool setGenre(const char *);
+        bool isGenre(const char *) const;
     } _genre;
 
     struct Content
@@ -36,32 +37,32 @@ class Song
 
     public:
         Content() = default;
-        bool readContentBin(const char *);    //
-        void raiseKthBits(int, bool);         //
-        void xOR(const Content &);            //
-        void saveToBin(std::ostream &) const; //
+        bool readContentBin(const char *);
+        void raiseKthBits(int, bool);
+        void xOR(const Content &);
+        void saveToBin(std::ostream &) const;
     } _content;
 
     bool _isValid = true;
 
 public:
-    Song() = default;                                              //
-    Song(const char *, int, int, int, const char *, const char *); //
+    Song() = default;
+    Song(const char *, int, int, int, const char *, const char *);
 
-    const char *getName() const; //
-    bool setName(const char *);  //
+    const char *getName() const;
+    bool setName(const char *);
 
-    const Time &getDuration() const; //
-    bool setDuration(int, int, int); //
+    const Time &getDuration() const;
+    bool setDuration(int, int, int);
 
-    bool setGenre(const char *);   //
-    bool setContent(const char *); //
+    bool setGenre(const char *);
+    bool setContent(const char *);
 
-    bool isGenre(const char *) const; //
-    bool isValid() const;             //
+    bool isGenre(const char *) const;
+    bool isValid() const;
 
-    void raiseKthBits(int, bool); //
-    void mix(const Song &);       //
+    void raiseKthBits(int, bool);
+    void mix(const Song &);
 
-    void print(std::ostream &) const; //
+    void print(std::ostream &) const;
 };
