@@ -1,6 +1,10 @@
 #pragma once
 #include "Song.h"
 
+typedef bool (*SongMatcher)(const Song &, const char *);
+typedef void (*SongProc)(const Song &);
+typedef bool (*SongComp)(const Song &, const Song &);
+
 class Playlist
 {
     Song _songs[MAX_PLAYLIST_SIZE];
@@ -13,12 +17,12 @@ public:
     bool mix(const char *, const char *);
     void print() const;
 
-    bool search(bool (*)(const Song &, const char *), void (*)(const Song &), const char *) const;
-    void sort(bool (*)(const Song &, const Song &));
+    bool search(SongMatcher, SongProc, const char *) const;
+    void sort(SongComp);
 
     bool save(const char *, const char *) const;
 
 private:
-    Song *find(bool (*)(const Song &, const char *), const char *);
-    const Song *find(bool (*)(const Song &, const char *), const char *) const;
+    Song *find(SongMatcher, const char *);
+    const Song *find(SongMatcher, const char *) const;
 };
